@@ -20,14 +20,8 @@ maxR = 500
 
 rings = 3
 
-def drawParallelogram(doc, parallelogram, maxT=1.0, scale=1.0, offset=(0.0, 0.0)):
+def drawParallelogram(doc, parallelogram, maxT=1.0):
     (point, u, v) = parallelogram
-
-    point = vec.scale(scale, vec.sum(point, offset))
-    u = vec.scale(scale, u)
-    v = vec.scale(scale, v)
-
-    parallelogram = (point, u, v)
 
     outlinePoints = [
         point,
@@ -279,6 +273,21 @@ def isOutermost(ring):
 def positionParallelogram(parallelogram, translateBefore, scale, translateAfter):
     (point, u, v) = parallelogram
 
+    point = vec.sum(
+        vec.scale(
+            scale,
+            vec.sum(
+                point,
+                translateBefore
+            )
+        ),
+        translateAfter
+    )
+    u = vec.scale(scale, u)
+    v = vec.scale(scale, v)
+
+    return (point, u, v)
+
 innerRing = initialRing(center)
 
 innerRings = initialRing(center)
@@ -320,23 +329,35 @@ elif maxY > maxX:
     (bias, _) = scaledFigureCenter
     centerAdjustment = (centerX - bias, 0.0)
 
-print(scaledFigureCenter)
-
-# offset = vec.diff(centerAdjustment, (minX, minY))
-# offset = vec.sum(centerAdjustment, vec.scale(-1, (minX, minY)))
-offset = vec.scale(-1, (minX, minY))
+offsetBefore = vec.scale(-1, (minX, minY))
+offsetAfter = vec.scale(
+    1/2,
+    vec.diff((width, height), (maxX*scale, maxY*scale))
+)
 
 for parallelogram in innerRings:
-    drawParallelogram(doc, parallelogram, scale=scale, offset=offset)
+    parallelogram = positionParallelogram(
+        parallelogram,
+        offsetBefore,
+        scale,
+        offsetAfter
+    )
+    drawParallelogram(doc, parallelogram)
 
 for parallelogram in outermostRing:
-    drawParallelogram(doc, parallelogram, scale=scale, offset=offset, maxT=0.5)
+    parallelogram = positionParallelogram(
+        parallelogram,
+        offsetBefore,
+        scale,
+        offsetAfter
+    )
+    drawParallelogram(doc, parallelogram, maxT=0.5)
 
 doc.setStrokeColor(255, 0, 0)
 doc.setFillOpacity(0.0)
-doc.addRect((minX, minY), maxX - minX, maxY - minY)
+# doc.addRect((minX, minY), maxX, maxY)
 
 doc.setStrokeColor(0, 255, 255)
-doc.addRect((0, 0), maxX * scale, maxY * scale)
+# doc.addRect((0, 0), maxX * scale, maxY * scale)
 
 doc.write("grid_subdivide.svg")

@@ -1,0 +1,7 @@
+*.pyc
+*.sh
+*.svg
+*.swp
+__pycache__
+SVGDocument.py
+good_ones

@@ -11,6 +11,9 @@ center = vec.scale(1/2, (width, height))
 
 background = (16, 16, 16)
 
+patterns = ["random", "star"]
+pattern = "random"
+
 minProportion = 1/25
 
 crosslines = 11
@@ -18,7 +21,17 @@ crosslines = 11
 minR = 75/2
 maxR = 500
 
-rings = 3
+starPoints = 10
+starMinR = 1/2
+starMaxR = 1.0
+if pattern == "random":
+    rings = 3
+elif pattern == "star":
+    rings = int(starPoints - starPoints * (starMinR ** 2))
+
+print((starPoints, rings))
+
+crosslineWidth = 5
 
 def drawParallelogram(doc, parallelogram, maxT=1.0):
     (point, u, v) = parallelogram
@@ -84,7 +97,7 @@ def drawCrossline(doc, parallelogram, t, colorThetaOffset):
 
     doc.setStrokeColor(*colors.colorCycle(colorTheta * 2 * math.pi))
 
-    doc.setStrokeWidth(5)
+    doc.setStrokeWidth(crosslineWidth)
 
     doc.addLine(*crossline)
 
@@ -173,6 +186,35 @@ def spiderweb(doc):
         drawParallelogram(doc, parallelogram)
 
 def initialRing(ringCenter):
+    if pattern == "random":
+        return randomRing(ringCenter)
+    elif pattern == "star":
+        return starRing(ringCenter)
+
+def starRing(ringCenter, points=starPoints):
+    parallelograms = []
+
+    offsetTheta = - math.pi / points / 2 + (math.pi / 4)
+
+    for i in range(points*2):
+        prevTheta = (i-1) * math.pi / points + offsetTheta
+        theta = i * math.pi / points + offsetTheta
+
+        prevR = 0
+        r = 0
+        if i % 2 == 0:
+            prevR, r = starMinR, starMaxR
+        else:
+            prevR, r = starMaxR, starMinR
+
+        prevEdge = vec.fromPolar(prevR, prevTheta + offsetTheta)
+        edge = vec.fromPolar(r, theta + offsetTheta)
+
+        parallelograms.append((ringCenter, prevEdge, edge))
+
+    return parallelograms
+
+def randomRing(ringCenter):
     offsetTheta = rng.uniform(0, 2 * math.pi)
     theta = 0
     thetaMinDelta = math.pi / 6

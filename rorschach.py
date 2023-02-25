@@ -4,8 +4,8 @@ import vector2D as vec
 import colors
 import random as rng
 
-width = 1000.0
-height = 1000.0
+width = 3840.0
+height = 3840.0
 
 debug = False
 
@@ -18,10 +18,10 @@ doc = svg(width, height)
 
 center = (width/2, height/2)
 
-maxRadius = min(width, height) / 2
+maxRadius = max(width, height) / 2
 maxComponent = math.sqrt((maxRadius**2)/2)
 
-points = int(rng.uniform(10, 600))
+points = int(rng.uniform(10, 225))
 vertices = []
 pattern = []
 
@@ -64,6 +64,6 @@ doc.setStrokeWidth(0)
 
 r, g, b = colors.colorCycle(rng.uniform(0, 2*math.pi))
 doc.setFillColor(r, g, b)
-doc.addPolygon(vertices)
+doc.addPolygon(*vertices)
 
 doc.write("rorschach.svg")

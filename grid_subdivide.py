@@ -330,7 +330,14 @@ def positionParallelogram(parallelogram, translateBefore, scale, translateAfter)
 
     return (point, u, v)
 
-innerRing = initialRing(center)
+def switchCorner(parallelogram):
+    point, u, v = parallelogram
+
+    return (
+        vec.sum(point, u),
+        v,
+        vec.scale(-1, u)
+    )
 
 innerRings = initialRing(center)
 ring = innerRings

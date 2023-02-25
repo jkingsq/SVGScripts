@@ -1,8 +1,8 @@
 import math
 from SVGDocument import SVGDocument as svg
 
-width = 1920.0
-height = 1080.0
+width = 3840.0
+height = 2160.0
 doc = svg(width, height)
 
 totalRotation = 9.5 * math.pi

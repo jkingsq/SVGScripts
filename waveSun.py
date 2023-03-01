@@ -15,7 +15,7 @@ debug = True
 background = (48, 48, 48)
 
 r, g, b = background
-doc.setFillColor(r, g, b)
+doc.setFillColor(*background)
 doc.addRect((0, 0), width, height)
 
 maxRadius = max(width,height)/2.0
@@ -29,14 +29,12 @@ radii = 200
 
 waveDepth = 2.0 * math.pi / rayPairs
 
-def circleFill(t, theta):
+def circleOutline(t, theta):
     inner = (255, 255, 255)
     outer = colors.colorCycle(theta)
     return colors.mixColors(inner, outer, 1)
 
 debugPoints = []
-
-doc.setStrokeColor(0, 0, 0)
 
 for i in range(radii):
     t = float(i) / float(radii)
@@ -48,15 +46,15 @@ for i in range(radii):
         theta = j * (2.0*math.pi) / rayPairs + thetaOffset +\
                 math.sin(waveTheta)*waveDepth/2
         circle = vec.sum(center, vec.fromPolar(radius, theta))
-        r, g, b = circleFill(t, theta)
-        doc.setFillColor(r, g, b)
+        r, g, b = circleOutline(t, theta)
+        doc.setStrokeColor(r, g, b)
         doc.addCircle(circle, circleRadius)
     for j in range(rayPairs):
         theta = j * (2.0*math.pi) / rayPairs + thetaOffset -\
                 math.sin(waveTheta)*waveDepth/2
         circle = vec.sum(center, vec.fromPolar(radius, theta))
-        r, g, b = circleFill(t, theta)
-        doc.setFillColor(r, g, b)
+        r, g, b = circleOutline(t, theta)
+        doc.setStrokeColor(r, g, b)
         doc.addCircle(circle, circleRadius)
 
 doc.write("waveSun.svg")

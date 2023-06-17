@@ -55,3 +55,12 @@ def insideAABB(v, topLeft, bottomRight):
     (xr, yb) = bottomRight
 
     return vx >= xl and vx <= xr and vy >= yt and vy <= yb
+
+def midpoint(u, v, t=0.5):
+    (ux, uy) = u
+    (vx, vy) = v
+
+    return (
+        (1 - t) * ux + t * vx,
+        (1 - t) * uy + t * vy
+    )

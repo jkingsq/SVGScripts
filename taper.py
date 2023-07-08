@@ -2,18 +2,13 @@ import math
 from SVGDocument import SVGDocument as svg
 from SVGDocument import SVGPath
 import vector2D as vec
-import colors
 
-width = 1000
+width = 600
 height = 600
 
 doc = svg(width, height)
-background = (0, 0, 0)
-
-fillMode = 'gradient'
-
-beginFillColor = (0, 0, 0)
-endFillColor = (128, 255, 255)
+background = (255, 255, 255)
+foreground = (0, 0, 0)
 
 strokes = 10
 layers = 50
@@ -30,10 +25,6 @@ def tile(cornerA, cornerD, strokeCount, transverseScale=1.0):
     cornerC = vec.midpoint(center, (ax, dy), transverseScale)
 
     tValues = [x/strokeCount for x in range(strokeCount)]
-
-    # tValues = tValues + [2 * t for t in tValues]
-
-    # tValues = [-1 * t for t in tValues] + tValues
 
     path = SVGPath()
 
@@ -61,33 +52,22 @@ viewportTile = ((0, 0), (width, height), strokes)
 if debug:
     path = tile(*viewportTile)
 
+    # draw path
     doc.setFillOpacity(0.0)
     doc.setStrokeOpacity(1.0)
     doc.setStrokeWidth(1)
-
     doc.addSVGPath(path, fill=False)
 else:
+    # fill background
     doc.setFillColor(*background)
     doc.setFillOpacity(1.0)
     doc.setStrokeOpacity(0.0)
     doc.addRect((0, 0), width, height)
 
+    # draw path
     doc.setStrokeWidth(0.0)
-
-    tValues = [layer / layers for layer in range(layers)]
-
-    for t in reversed(tValues):
-        colorT = 1.0 - (1.0-t)**8
-        color = (255, 255, 255)
-
-        if fillMode == 'wheel':
-            colorTheta = 2 * math.pi * colorT
-            color = colors.colorCycle(colorTheta)
-        elif fillMode == 'gradient':
-            color = colors.mixColors(beginFillColor, endFillColor, colorT)
-
-        doc.setFillColor(*color)
-        path = tile(*viewportTile, transverseScale = 1.0 - t)
-        doc.addSVGPath(path, fill=True)
+    doc.setFillColor(*foreground)
+    path = tile(*viewportTile)
+    doc.addSVGPath(path, fill=True)
 
 doc.write("taper.svg")

@@ -121,10 +121,13 @@ curve = SVGPath()
 
 for (start, controlA, controlB, end) in tilePaths:
     curve.moveTo(start)
-    addDebugPoint(start)
-    addDebugPoint(end)
-    addDebugPoint(controlA, blue)
-    addDebugPoint(controlB, blue)
+    addDebugPoint([start, end], red)
+    (halfCornerB, halfCornerC) = tileCornersBC(start, end, 0.5)
+    (cornerB, cornerC) = tileCornersBC(start, end, 1.0)
+    addDebugPoint(vec.midpoint(start, end))
+    addDebugPoint([controlA, controlB], green)
+    addDebugPoint([halfCornerB, cornerB], blue)
+    addDebugPoint([halfCornerC, cornerC], blue)
 
     curve.cubicBezier(controlA, controlB, end)
 
@@ -141,9 +144,22 @@ doc.addSVGPath(curve, fill=True)
 
 if debug:
     radius = max(width, height) / 200
+    strokeWidth = radius / 2
 
-    for (point, color) in debugPoints:
-        doc.setFillColor(*color)
-        doc.addCircle(point, radius)
+    for (point_or_line, color) in debugPoints:
+        if type(point_or_line[0]) == type(0.0):
+            doc.setFillOpacity(1.0)
+            doc.setFillColor(*color)
+            doc.addCircle(point_or_line, radius)
+            print("debug point " + str(point_or_line))
+        elif type(point_or_line[0]) == type(()):
+            doc.setFillOpacity(1.0)
+            doc.setStrokeOpacity(1.0)
+            doc.setStrokeColor(*color)
+            doc.setStrokeWidth(strokeWidth)
+            doc.addPolyLine(*point_or_line)
+            print("debug line " + str(point_or_line))
+        else:
+            raise(point_or_line)
 
 doc.write("whirl.svg")

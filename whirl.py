@@ -47,8 +47,8 @@ def tileCornersBC(cornerA, cornerD, eccentricity):
     tileCenter = vec.midpoint(cornerA, cornerD)
     halfTransverse = ortho(vec.diff(cornerD, tileCenter))
 
-    cornerB = vec.scale(eccentricity, vec.sum(tileCenter, halfTransverse))
-    cornerC = vec.scale(eccentricity, vec.diff(tileCenter, halfTransverse))
+    cornerB = vec.sum(tileCenter, vec.scale(eccentricity, halfTransverse))
+    cornerC = vec.sum(tileCenter, vec.scale(-1 * eccentricity, halfTransverse))
 
     return (cornerB, cornerC)
 

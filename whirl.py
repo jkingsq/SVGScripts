@@ -99,7 +99,7 @@ for i in range(len(halfPathEndpoints)):
     cornerD = halfPathEndpoints[i]
     strokes = rng.randint(minTileStrokes, maxTileStrokes)
 
-    eccentricity = rng.random() * 3.0
+    eccentricity = rng.random() * globalEccentricity
 
     tile = tilePoints(cornerA, cornerD, strokes, eccentricity=eccentricity)
 

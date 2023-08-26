@@ -54,8 +54,8 @@ def pencil(point, angle):
         vec.scale(maxRadius, heading))
 
     # Draw the shape at this point
-    doc.addPolygon([point, rightCorner, farRightCorner, farLeftCorner,\
-        leftCorner])
+    doc.addPolygon(point, rightCorner, farRightCorner, farLeftCorner,\
+        leftCorner)
     #doc.addPolygon([point, rightCorner, leftCorner])
 
 def pencilRing(n, r, first=False):

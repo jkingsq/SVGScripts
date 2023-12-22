@@ -2,6 +2,7 @@ import colors
 import math
 import random as rng
 import vector2D as vec
+import whirl_helpers as helpers
 from SVGDocument import SVGDocument as svg
 from SVGDocument import SVGPath
 
@@ -28,9 +29,11 @@ maxRadius = max(width, height) / 2
 maxComponent = math.sqrt((maxRadius**2)/2)
 
 intersectionPoints = int(rng.uniform(5, 10))
-minTileStrokes = 3
+minTileStrokes = 1
+print("minTileStrokes", minTileStrokes)
 maxTileStrokes = 6
-globalEccentricity = 3.0
+print("maxTileStrokes", maxTileStrokes)
+globalEccentricity = 1.0
 
 def addDebugPoint(point, color=red):
     debugPoints.append((point, color))
@@ -43,14 +46,14 @@ def ortho(vec):
 def interpolate(x, y, t):
     return (1 - t) * x + t * y
 
+(tileEffectName, tileEffect) = helpers.tileEffect
+print("Tile effect:", tileEffectName)
+
 def tileCornersBC(cornerA, cornerD, eccentricity):
-    tileCenter = vec.midpoint(cornerA, cornerD)
-    halfTransverse = ortho(vec.diff(cornerD, tileCenter))
+    return tileEffect(cornerA, cornerD, eccentricity)
 
-    cornerB = vec.sum(tileCenter, vec.scale(eccentricity, halfTransverse))
-    cornerC = vec.sum(tileCenter, vec.scale(-1 * eccentricity, halfTransverse))
-
-    return (cornerB, cornerC)
+(tEffectName, tEffect) = helpers.tEffect
+print("t effect:", tEffectName)
 
 def tilePoints(cornerA, cornerD, strokeCount, eccentricity=1.0):
     tileCenter = vec.midpoint(cornerA, cornerD)
@@ -59,21 +62,14 @@ def tilePoints(cornerA, cornerD, strokeCount, eccentricity=1.0):
     pathQuadruples = []
 
     for n in range(strokeCount):
-        start, end = None, None
-        maxControlA, maxControlB = None, None
+        eccentricityScale = tEffect((n + 1) / strokeCount)
+
+        (controlA, controlB) = tileCornersBC(cornerA, cornerD, eccentricityScale)
+
         if n % 2 == 0:
-            start, end = cornerA, cornerD
-            maxControlA, maxControlB = cornerB, cornerC
+            pathQuadruples.append((cornerA, controlA, controlB, cornerD))
         else:
-            start, end = cornerD, cornerA
-            maxControlA, maxControlB = cornerC, cornerB
-
-        eccentricityScale = (n + 1) / strokeCount
-
-        controlA = vec.midpoint(tileCenter, maxControlA, eccentricityScale)
-        controlB = vec.midpoint(tileCenter, maxControlB, eccentricityScale)
-
-        pathQuadruples.append((start, controlA, controlB, end))
+            pathQuadruples.append((cornerD, controlB, controlA, cornerA))
 
     return pathQuadruples
 

@@ -11,10 +11,14 @@ def magnitude(v):
 def normalize(v):
     return scale(1/magnitude(v), v)
 
-def sum(u, v):
-    uX, uY = u
-    vX, vY = v
-    return (uX+vX, uY+vY)
+def sum(*vectors):
+    sumX = 0
+    sumY = 0
+    for x, y in vectors:
+        sumX += x
+        sumY += y
+
+    return (sumX, sumY)
 
 def diff(u, v):
     return sum(u, scale(-1, v))

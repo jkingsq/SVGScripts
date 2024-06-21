@@ -45,6 +45,8 @@ def tile(cornerA, cornerD, strokeCount, transverseScale=1.0):
             cornerA
         )
 
+    # repeat final curve segment in reverse order
+
     return path
 
 viewportTile = ((0, 0), (width, height), strokes)

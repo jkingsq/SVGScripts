@@ -1,11 +1,15 @@
 import math
 import random
 import whirl_tile_effects as tileEffects
+import inspect
 
 def randomKVPair(d):
     key = random.choice(list(d.keys()))
 
     return (key, d[key])
+
+def arity(f):
+    return len(inspect.signature(f).parameters)
 
 tExponent = 3
 
@@ -29,12 +33,6 @@ tRangeDict = {
 
 tRangeName, tRangeEffect = randomKVPair(tRangeDict)
 
-tEffect = (
-    tRangeName + " " + tDistributionName,
-    lambda t: tRangeEffect(tDistributionEffect(t))
-)
-# tEffect = ("hardcoded inverted-exponential", tEffectsDict["inverted-exponential"])
-
 tileEffectsDict = {
     "u-shape": tileEffects.UShape(),
     "z-shape": tileEffects.ZShape(),
@@ -44,11 +42,43 @@ tileEffectsDict = {
     "loop": tileEffects.Loop()
 }
 
-tileEffect = randomKVPair(tileEffectsDict)
-# tileEffect = ("hardcoded loop", tileEffects.Loop())
-
 effectCombinationsDict = {
-    "plain": tileEffects.Plain,
     "ortho": tileEffects.Ortho,
-    "sum": tileEffects.Sum
+    "centeredSum": tileEffects.CenteredSum,
+    "compose": tileEffects.Compose,
+    "avg": tileEffects.Average,
+    "sum": tileEffects.Sum,
+    "swap": tileEffects.Swap,
+    "reflect-b": tileEffects.ReflectB,
+    "reflect-c": tileEffects.ReflectC
 }
+
+def randomCombinationEffect(plainChance=0.1):
+    choice = random.random()
+    name, function = (None, None)
+
+    if choice <= plainChance:
+        (name, function) = randomKVPair(tileEffectsDict)
+    else:
+        (comboName, comboClass) = randomKVPair(effectCombinationsDict)
+
+        # chance of recursing further decreases by half
+        nextPlainChance = 1.0 - (1.0 - plainChance) / 2.0
+
+        effects = [randomCombinationEffect(plainChance=nextPlainChance) for n in range(arity(comboClass))]
+
+        # blursed unzip idiom I love python
+        [effectNames, effectFunctions] = list(zip(*effects))
+
+        effectNamesStr = ", ".join(effectNames)
+        name = comboName + "(" + effectNamesStr + ")"
+        function = comboClass(*effectFunctions)
+
+    return (name, function)
+
+tEffect = (
+    tRangeName + " " + tDistributionName,
+    lambda t: tRangeEffect(tDistributionEffect(t))
+)
+
+tileEffect = randomCombinationEffect()

@@ -114,7 +114,7 @@ class Plain:
         self.fn = fn
 
     def __call__(self, cornerA, cornerD, eccentricity):
-        return fn(cornerA, cornerD, eccentricity)
+        return self.fn(cornerA, cornerD, eccentricity)
 
 class Ortho:
     def __init__(self, fn):
@@ -123,7 +123,7 @@ class Ortho:
     def __call__(self, cornerA, cornerD, eccentricity):
         center = vec.midpoint(cornerA, cornerD)
 
-        cornerB, cornerC = fn(cornerA, cornerD, eccentricity)
+        cornerB, cornerC = self.fn(cornerA, cornerD, eccentricity)
 
         resultCornerB = vec.sum(
             ortho(vec.diff(cornerB, center)),
@@ -137,7 +137,7 @@ class Ortho:
 
         return (resultCornerB, resultCornerC)
 
-class Sum:
+class CenteredSum:
     def __init__(self, fnA, fnB):
         self.fnA = fnA
         self.fnB = fnB
@@ -154,3 +154,125 @@ class Sum:
                 center
             )
         )
+
+class Average:
+    def __init__(self, fnA, fnB):
+        self.fnA = fnA
+        self.fnB = fnB
+
+    def __call__(self, cornerA, cornerD, eccentricity):
+        (fnACornerB, fnACornerC) = self.fnA(cornerA, cornerD, eccentricity)
+        (fnBCornerB, fnBCornerC) = self.fnB(cornerA, cornerD, eccentricity)
+
+        cornerBOffset = vec.scale(
+            1/2,
+            vec.sum(
+                vec.diff(fnACornerB, cornerA),
+                vec.diff(fnBCornerB, cornerA)
+            )
+        )
+
+        cornerCOffset = vec.scale(
+            1/2,
+            vec.sum(
+                vec.diff(fnACornerC, cornerD),
+                vec.diff(fnBCornerC, cornerD)
+            )
+        )
+
+        cornerB = vec.sum(cornerA, cornerBOffset)
+        cornerC = vec.sum(cornerD, cornerCOffset)
+
+        return (cornerB, cornerC)
+
+class Compose:
+    def __init__(self, fnA, fnB):
+        self.fnA = fnA
+        self.fnB = fnB
+
+    def __call__(self, cornerA, cornerD, eccentricity):
+        (fnACornerB, fnACornerC) = self.fnA(cornerA, cornerD, eccentricity)
+
+        return self.fnB(fnACornerB, fnACornerC, eccentricity)
+
+class Difference:
+    def __init__(self, fnA, fnB):
+        self.fnA = fnA
+        self.fnB = fnB
+
+    def __call__(self, cornerA, cornerD, eccentricity):
+        (fnACornerB, fnACornerC) = self.fnA(cornerA, cornerD, eccentricity)
+        (fnBCornerB, fnBCornerC) = self.fnB(cornerA, cornerD, eccentricity)
+
+        cornerBOffset = vec.diff(
+            vec.diff(fnACornerB, cornerA),
+            vec.diff(fnBCornerB, cornerA)
+        )
+
+        cornerCOffset = vec.diff(
+            vec.diff(fnACornerC, cornerD),
+            vec.diff(fnBCornerC, cornerD)
+        )
+
+        cornerB = vec.sum(cornerA, cornerBOffset)
+        cornerC = vec.sum(cornerD, cornerCOffset)
+
+        return (cornerB, cornerC)
+
+class Sum:
+    def __init__(self, fnA, fnB):
+        self.fnA = fnA
+        self.fnB = fnB
+
+    def __call__(self, cornerA, cornerD, eccentricity):
+        (fnACornerB, fnACornerC) = self.fnA(cornerA, cornerD, eccentricity)
+        (fnBCornerB, fnBCornerC) = self.fnB(cornerA, cornerD, eccentricity)
+
+        cornerBOffset = vec.sum(
+            vec.diff(fnACornerB, cornerA),
+            vec.diff(fnBCornerB, cornerA)
+        )
+
+        cornerCOffset = vec.sum(
+            vec.diff(fnACornerC, cornerD),
+            vec.diff(fnBCornerC, cornerD)
+        )
+
+        cornerB = vec.sum(cornerA, cornerBOffset)
+        cornerC = vec.sum(cornerD, cornerCOffset)
+
+        return (cornerB, cornerC)
+
+class ReflectB:
+    def __init__(self, fn):
+        self.fn = fn
+
+    def __call__(self, cornerA, cornerD, eccentricity):
+        (fnCornerB, fnCornerC) = self.fn(cornerA, cornerD, eccentricity)
+
+        cornerBOffset = vec.diff(cornerA, fnCornerB)
+
+        cornerB = vec.sum(cornerA, cornerBOffset)
+
+        return (cornerB, fnCornerC)
+
+class ReflectC:
+    def __init__(self, fn):
+        self.fn = fn
+
+    def __call__(self, cornerA, cornerD, eccentricity):
+        (fnCornerB, fnCornerC) = self.fn(cornerA, cornerD, eccentricity)
+
+        cornerCOffset = vec.diff(cornerD, fnCornerC)
+
+        cornerC = vec.sum(cornerD, cornerCOffset)
+
+        return (fnCornerB, cornerC)
+
+class Swap:
+    def __init__(self, fn):
+        self.fn = fn
+
+    def __call__(self, cornerA, cornerD, eccentricity):
+        (cornerB, cornerC) = self.fn(cornerA, cornerD, eccentricity)
+        return (cornerC, cornerB)

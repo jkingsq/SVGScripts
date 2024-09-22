@@ -1,6 +1,7 @@
 import math
 import random
 import whirl_tile_effects as tileEffects
+import whirl_symmetry_effects as symmetryEffects
 import inspect
 
 def randomKVPair(d):
@@ -42,6 +43,15 @@ tileEffectsDict = {
     "loop": tileEffects.Loop()
 }
 
+symmetryEffectsDict = {
+    # "lateral": symmetryEffects.Lateral(),
+    # "rotational": symmetryEffects.Rotational(),
+    # "translational": symmetryEffects.Translational(),
+    "translational with reflections": symmetryEffects.TranslationalWithReflections()
+}
+
+symmetryName, symmetryEffectFn = randomKVPair(symmetryEffectsDict)
+
 effectCombinationsDict = {
     "ortho": tileEffects.Ortho,
     "centeredSum": tileEffects.CenteredSum,
@@ -62,8 +72,8 @@ def randomCombinationEffect(plainChance=0.1):
     else:
         (comboName, comboClass) = randomKVPair(effectCombinationsDict)
 
-        # chance of recursing further decreases by half
-        nextPlainChance = 1.0 - (1.0 - plainChance) / 2.0
+        # chance of recursing further decreases by one third
+        nextPlainChance = 1.0 - 2.0 * (1.0 - plainChance) / 3.0
 
         effects = [randomCombinationEffect(plainChance=nextPlainChance) for n in range(arity(comboClass))]
 
@@ -79,6 +89,10 @@ def randomCombinationEffect(plainChance=0.1):
 tEffect = (
     tRangeName + " " + tDistributionName,
     lambda t: tRangeEffect(tDistributionEffect(t))
+)
+
+symmetryEffect = (
+    symmetryName, symmetryEffectFn
 )
 
 tileEffect = randomCombinationEffect()

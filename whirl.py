@@ -3,6 +3,7 @@ import math
 import random as rng
 import vector2D as vec
 import whirl_helpers as helpers
+import whirl_symmetry_effects as symmetryEffects
 from SVGDocument import SVGDocument as svg
 from SVGDocument import SVGPath
 
@@ -13,7 +14,6 @@ width = 3840.0
 height = 3840.0
 
 startTheta = 0
-symmetryAxes = int(rng.uniform(1, 16))
 
 background = (16, 16, 16)
 foreground = (255, 255, 255)
@@ -35,6 +35,13 @@ maxTileStrokes = 6
 print("maxTileStrokes", maxTileStrokes)
 globalEccentricity = 1.0
 
+(tileEffectName, tileEffect) = helpers.tileEffect
+print("Tile effect:", tileEffectName)
+
+(symmetryName, symmetryEffect) = helpers.symmetryEffect
+symmetryDegree = rng.randint(1, 10)
+print("Symmetry effect: {}({})".format(symmetryName, symmetryDegree))
+
 def addDebugPoint(point, color=red):
     debugPoints.append((point, color))
 
@@ -46,8 +53,9 @@ def ortho(vec):
 def interpolate(x, y, t):
     return (1 - t) * x + t * y
 
-(tileEffectName, tileEffect) = helpers.tileEffect
-print("Tile effect:", tileEffectName)
+# Scale a vector within [-1, -1], [1, 1] to the rectangle of the screen
+def scaleAndCenter(v):
+    return vec.sum(vec.scale(maxRadius, v), center)
 
 def tileCornersBC(cornerA, cornerD, eccentricity):
     return tileEffect(cornerA, cornerD, eccentricity)
@@ -79,43 +87,36 @@ def pathEnd(pathQuadruples):
 
 halfPathEndpoints = []
 
-for i in range(int(intersectionPoints)):
-    x = rng.uniform(0, width)
-    y = rng.uniform(0, height)
+for i in range(int(intersectionPoints * 2)):
+    x = rng.uniform(-1.0, 1.0)
+    y = rng.uniform(-1.0, 1.0)
     halfPathEndpoints.append((x, y))
 
-halfTilePaths = []
+tilePaths = []
 
-lastCurveEndpoint = halfPathEndpoints[0]
-for i in range(len(halfPathEndpoints)):
-    if i == 0:
-        continue
-
-    cornerA = lastCurveEndpoint
-    cornerD = halfPathEndpoints[i]
-    strokes = rng.randint(minTileStrokes, maxTileStrokes)
+for i in range(0, len(halfPathEndpoints), 2):
+    cornerA = halfPathEndpoints[i]
+    cornerD = halfPathEndpoints[i+1]
+    strokes = 2 * rng.randint(
+        math.ceil(minTileStrokes / 2),
+        math.floor(maxTileStrokes / 2)
+    )
 
     eccentricity = rng.random() * globalEccentricity
 
-    tile = tilePoints(cornerA, cornerD, strokes, eccentricity=eccentricity)
+    baseTile = tilePoints(cornerA, cornerD, strokes, eccentricity=eccentricity)
 
-    halfTilePaths += tile
+    tilePaths += symmetryEffects.applySymmetry(baseTile, symmetryEffect, symmetryDegree)
 
-    lastCurveEndpoint = pathEnd(tile)
-
-tilePaths = halfTilePaths.copy()
-
-for (start, controlA, controlB, end) in halfTilePaths:
-    tilePaths.append((
-        vec.midpoint(center, start, -1.0),
-        vec.midpoint(center, controlA, -1.0),
-        vec.midpoint(center, controlB, -1.0),
-        vec.midpoint(center, end, -1.0)
-    ))
-
+# Transcribe each tile into a curve object
 curve = SVGPath()
 
 for (start, controlA, controlB, end) in tilePaths:
+    start = scaleAndCenter(start)
+    controlA = scaleAndCenter(controlA)
+    controlB = scaleAndCenter(controlB)
+    end = scaleAndCenter(end)
+
     curve.moveTo(start)
     addDebugPoint([start, end], red)
     (halfCornerB, halfCornerC) = tileCornersBC(start, end, 0.5)
@@ -126,6 +127,7 @@ for (start, controlA, controlB, end) in tilePaths:
     addDebugPoint([halfCornerC, cornerC], blue)
 
     curve.cubicBezier(controlA, controlB, end)
+    curve.moveTo((0.0, 0.0))
 
 # fill background
 doc.setFillColor(*background)

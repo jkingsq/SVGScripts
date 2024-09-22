@@ -39,6 +39,10 @@ def equal(u, v):
 def fromPolar(r, theta):
     return (r*math.cos(theta), r*math.sin(theta))
 
+def toPolar(v):
+    (x, y) = v
+    return (magnitude(v), math.atan2(x, y))
+
 # project u onto v
 def project(u, v):
     return scale(dot(u, normalize(v)), v)
